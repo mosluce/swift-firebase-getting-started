@@ -12,7 +12,7 @@ import SwifterSwift
 
 class TodoListViewController: UITableViewController {
 
-    lazy var db = Database.database().reference().child("demo180306/todo_items")
+    var db = Database.database().reference().child("demo180306/todo_items")
     
     var todoItems = [TodoItem]()
     
