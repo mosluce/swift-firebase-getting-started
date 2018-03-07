@@ -94,7 +94,6 @@ class ViewController: UIViewController {
             } else {
                 self?.addBtn.isEnabled = true
                 self?.logoutBtn.isEnabled = true
-                self?.todoList.setupObserver()
             }
         }
     }
