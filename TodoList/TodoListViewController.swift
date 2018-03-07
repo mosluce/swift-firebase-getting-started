@@ -21,13 +21,14 @@ class TodoListViewController: UITableViewController {
         super.viewDidLoad()
 
         self.tableView.register(cellWithClass: TodoListCell.self)
-        self.setupObserver()
         
         Auth.auth().addStateDidChangeListener {[weak self] (_, user) in
             guard let `self` = self else { return }
             
             if user != nil {
+                self.db.removeAllObservers()
                 self.loadList()
+                self.setupObserver()
             }
         }
     }
