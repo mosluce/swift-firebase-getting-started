@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import FirebaseAuth
 import FirebaseDatabase
 import SwifterSwift
 
@@ -21,11 +22,14 @@ class TodoListViewController: UITableViewController {
 
         self.tableView.register(cellWithClass: TodoListCell.self)
         self.setupObserver()
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        
+        Auth.auth().addStateDidChangeListener {[weak self] (_, user) in
+            guard let `self` = self else { return }
+            
+            if user != nil {
+                self.loadList()
+            }
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -37,7 +41,8 @@ class TodoListViewController: UITableViewController {
         db.removeAllObservers()
     }
 
-    func setupObserver() {
+    func loadList() {
+        self.todoItems = []
         db.observeSingleEvent(of: .value) {[weak self] (snapshot) in
             guard let `self` = self else { return }
             guard let arr = snapshot.value as? [String: [String: Any]] else { return }
@@ -54,7 +59,9 @@ class TodoListViewController: UITableViewController {
             self.todoItems = (self.todoItems + todoItems).sorted(by: { $0.timestamp > $1.timestamp })
             self.tableView.reloadData()
         }
-        
+    }
+    
+    func setupObserver() {
         db.queryOrdered(byChild: "timestamp")
             .queryStarting(atValue: Date().timeIntervalSince1970, childKey: "timestamp")
             .observe(.childAdded) {[weak self] (snapshot) in
@@ -67,9 +74,9 @@ class TodoListViewController: UITableViewController {
                 guard let todoItem = try? JSONDecoder().decode(TodoItem.self, from: data) else { return }
                 
                 self.todoItems.insert(todoItem, at: 0)
-                self.tableView.beginUpdates()
+//                self.tableView.beginUpdates()
                 self.tableView.insertRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
-                self.tableView.endUpdates()
+//                self.tableView.endUpdates()
             }
         
         db.observe(.childRemoved) {[weak self] (snapshot) in
@@ -80,9 +87,9 @@ class TodoListViewController: UITableViewController {
             guard let index = self.todoItems.index(where: { $0.id == id }) else { return }
 
             self.todoItems.remove(at: index)
-            self.tableView.beginUpdates()
+//            self.tableView.beginUpdates()
             self.tableView.deleteRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
-            self.tableView.endUpdates()
+//            self.tableView.endUpdates()
         }
         
         db.observe(.childChanged) {[weak self] (snapshot) in
@@ -95,9 +102,9 @@ class TodoListViewController: UITableViewController {
             todoItem.id = id
             
             self.todoItems[index] = todoItem
-            self.tableView.beginUpdates()
+//            self.tableView.beginUpdates()
             self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
-            self.tableView.endUpdates()
+//            self.tableView.endUpdates()
         }
     }
     

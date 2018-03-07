@@ -68,13 +68,25 @@ class AuthViewController: UIViewController {
     
     @objc func register() {
         guard let email = emailField.text, let password = passwordField.text else { return }
-        Auth.auth().createUser(withEmail: email, password: password) {[weak self] (_, error) in
+        Auth.auth().createUser(withEmail: email, password: password) {[weak self] (user, error) in
             if let error = error {
                 let alert = UIAlertController(title: "Register failed", message: error.localizedDescription, preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: "OK!", style: .default, handler: nil))
                 self?.present(alert, animated: true, completion: nil)
             } else {
-                self?.login()
+                user?.sendEmailVerification(completion: {[weak self] (error) in
+                    if let error = error {
+                        let alert = UIAlertController(title: "Register failed", message: error.localizedDescription, preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "OK!", style: .default, handler: {[weak self] (_) in
+                            self?.dismiss(animated: true, completion: nil)
+                        }))
+                        self?.present(alert, animated: true, completion: nil)
+                    } else {
+                        let vc = UIAlertController(title: "Success", message: "Please Check Email", preferredStyle: .alert)
+                        vc.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                        self?.present(vc, animated: true, completion: nil)
+                    }
+                })
             }
         }
     }
